@@ -70,7 +70,7 @@ def generate_response(api_key, inquiry, context, store_name, manager_name):
     # Gemini モデルを選択
     model = genai.GenerativeModel("gemini-pro")
 
-    prompt = f"{introduction} お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
+    prompt = f"{introduction} お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。回答の生成が難しい場合は、文頭に【要確認】と表示してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
     
     # 生成を実行
     response = model.generate_content(prompt)
