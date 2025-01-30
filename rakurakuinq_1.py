@@ -3,6 +3,8 @@
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
+import io
+
 # 事前学習用の会話データ
 predefined_conversations = [
     {"customer": "注文した商品が届かないのですが？", "store": "ご注文番号を教えていただけますか？確認いたします。"},
@@ -21,13 +23,13 @@ def get_api_key():
     
     return api_key
 
-# 会話ログの入力
+# 会話ログの入力（サイドバー）
 def get_conversation():
-    st.header("会話のログ入力")
-    customer_1 = st.text_area("お客様①")
-    store_1 = st.text_area("店舗①")
-    customer_2 = st.text_area("お客様②")
-    store_2 = st.text_area("店舗②")
+    st.sidebar.header("会話のログ入力")
+    customer_1 = st.sidebar.text_area("お客様①")
+    store_1 = st.sidebar.text_area("店舗①")
+    customer_2 = st.sidebar.text_area("お客様②")
+    store_2 = st.sidebar.text_area("店舗②")
     
     return customer_1, store_1, customer_2, store_2
 
@@ -98,8 +100,8 @@ def main():
         response = generate_response(api_key, inquiry, context)
         st.write(f"### 修正後の返答: {response}")
     
-    # 会話ログのCSV出力
-    if st.button("会話ログをCSVで出力"):
+    # 会話ログのExcel出力
+    if st.button("会話ログをExcelで出力"):
         df = pd.DataFrame([
             ["お客様①", customer_1],
             ["店舗①", store_1],
@@ -108,13 +110,16 @@ def main():
             ["問い合わせ", inquiry],
             ["追加情報", additional_info]
         ], columns=["種類", "内容"])
-        df.to_csv("conversation_log.csv", index=False)
-        st.success("会話ログがCSVとして出力されました。")
-        st.download_button(label="ダウンロード", data=df.to_csv(index=False).encode("utf-8"), file_name="conversation_log.csv", mime="text/csv")
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, index=False, sheet_name="会話ログ")
+        output.seek(0)
+        
+        st.success("会話ログがExcelとして出力されました。")
+        st.download_button(label="ダウンロード", data=output, file_name="conversation_log.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 if __name__ == "__main__":
     main()
-    
-
 
 
