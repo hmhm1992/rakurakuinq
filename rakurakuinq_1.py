@@ -24,7 +24,6 @@ predefined_conversations = [
     {"customer": "商品を頼んだけど全く届かない。どうなっていますか？", "store": "この度は当店をご利用いただきありがとうございます。ご注文商品の配送状況を確認いたしましたところ、配達完了となっておりました。大変お手数ではございますが、ご同居の住民様、配送先住所とあわせて今一度ご確認のほどお願いいたします。すでにご確認いただいており商品の確認が出来ません場合、誤配送などの可能性がございますため、その際はこちらへとお問い合わせくださいませ。在庫確認後対応させていただきます。ご不便をおかけしており大変恐縮でございますが、ご対応のほどよろしくお願いいたします。"},
     {"customer": "商品の到着が遅すぎるのでキャンセルお願いします", "store": "お問い合わせありがとうございます。カスタマーサポートでございます。お問い合わせ商品は〇〇に配達完了となっております。今一度お手元に届いていないかご確認いただけますと幸いです。"}
 ]
-
 # APIキーの入力またはアップロード
 def get_api_key():
     st.sidebar.header("Gemini APIキー設定")
@@ -46,62 +45,23 @@ def get_conversation():
     
     return customer_1, store_1, customer_2, store_2
 
-# 重要度判定と問い合わせ分類（Gemini AIを使用）
-def classify_inquiry(api_key, inquiry):
-    if not api_key:
-        return "APIキーが設定されていません。", "分類できません"
-    
-    # APIキーを設定
-    genai.configure(api_key=api_key)
-    
-    # Gemini モデルを選択
-    model = genai.GenerativeModel("gemini-pro")
-    
-    # プロンプト作成
-    prompt = f"""
-    以下の問い合わせの重要度を判定し、分類してください。
-
-    問い合わせ: "{inquiry}"
-
-    重要度は以下の3つの中から選択してください。
-    1. すぐに返信する必要がある
-    2. 返信が必要
-    3. 丁寧な返信が必要
-
-    また、問い合わせの種類は以下の3つの中から選択してください。
-    1. 注文前の問い合わせ
-    2. 注文後の問い合わせ
-    3. その他
-
-    重要度と問い合わせの種類を出力してください。
-    """
-    
-    # Gemini API に問い合わせる
-    response = model.generate_content(prompt)
-    
-    # 結果を解析（応答テキストの抽出）
-    result = response.text.strip().split("\n")
-    
-    if len(result) >= 2:
-        importance = result[0].strip()
-        inquiry_type = result[1].strip()
-    else:
-        importance, inquiry_type = "分類エラー", "分類エラー"
-
-    return importance, inquiry_type
-
 # 返答の作成
 def generate_response(api_key, inquiry, context):
     if not api_key:
         return "APIキーが設定されていません。"
     
+    # 事前学習データに基づいた返答を優先
+    for convo in predefined_conversations:
+        if convo["customer"] in inquiry:
+            return convo["store"]
+    
     # APIキーを設定
     genai.configure(api_key=api_key)
     
     # Gemini モデルを選択
     model = genai.GenerativeModel("gemini-pro")
 
-    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、以下の会話履歴、問い合わせ内容、既存の返答内容を考慮して回答例を作成してください。\n\n会話履歴:\n{context}\n\n問い合わせ内容:\n{inquiry}"
+    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
     
     # 生成を実行
     response = model.generate_content(prompt)
@@ -120,12 +80,9 @@ def main():
     inquiry = st.text_area("お客様からの問い合わせ")
     
     if st.button("問い合わせを処理"):
-        importance, inquiry_type = classify_inquiry(api_key, inquiry)
         context = f"会話履歴: {customer_1}, {store_1}, {customer_2}, {store_2}"
         response = generate_response(api_key, inquiry, context)
         
-        st.write(f"### 重要度: {importance}")
-        st.write(f"### 問い合わせ分類: {inquiry_type}")
         st.write(f"### 返答: {response}")
     
     st.header("追加情報入力")
@@ -159,4 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
