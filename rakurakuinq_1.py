@@ -56,12 +56,9 @@ def generate_response(api_key, inquiry, context):
     if not api_key:
         return "APIキーが設定されていません。"
     
-    # 学習済み会話データを活用する
-    for convo in predefined_conversations:
-        if convo["customer"] in inquiry:
-            return convo["store"]
+    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、事前学習用の会話データ内容を踏まえて回答例を作成してください。"
+    response = genai.generate_text(api_key=api_key, prompt=prompt)
     
-    response = f"返答の例: {inquiry} に対する適切な返答を作成します。"
     return response
 
 # メインアプリ
