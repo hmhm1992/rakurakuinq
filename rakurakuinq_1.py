@@ -56,10 +56,18 @@ def generate_response(api_key, inquiry, context):
     if not api_key:
         return "APIキーが設定されていません。"
     
-    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、事前学習用の会話データ内容を踏まえて回答例を作成してください。"
-    response = genai.generate_text(api_key=api_key, prompt=prompt)
+    # APIキーを設定
+    genai.configure(api_key=api_key)
     
-    return response
+    # Gemini モデルを選択
+    model = genai.GenerativeModel("gemini-pro")
+
+    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、事前学習用の会話データ内容を踏まえて回答例を作成してください。"
+    
+    # 生成を実行
+    response = model.generate_content(prompt)
+    
+    return response.text
 
 # メインアプリ
 def main():
