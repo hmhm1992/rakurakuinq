@@ -77,6 +77,8 @@ def main():
     additional_info = st.text_area("追加情報を入力してください")
     
     if st.button("追加情報を考慮して返答を作成"):
+        if 'context' not in locals():
+            context = ""
         context += f" 追加情報: {additional_info}"
         response = generate_response(api_key, inquiry, context)
         st.write(f"### 修正後の返答: {response}")
@@ -97,6 +99,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
     
     
 
