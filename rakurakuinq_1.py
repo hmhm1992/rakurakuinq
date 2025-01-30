@@ -2,7 +2,7 @@
 # coding: utf-8
 import streamlit as st
 import pandas as pd
-import openai
+import google.generativeai as genai
 
 # APIキーの入力またはアップロード
 def get_api_key():
