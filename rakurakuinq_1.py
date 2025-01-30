@@ -3,7 +3,6 @@
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
-
 # 事前学習用の会話データ
 predefined_conversations = [
     {"customer": "注文した商品が届かないのですが？", "store": "ご注文番号を教えていただけますか？確認いたします。"},
@@ -62,7 +61,7 @@ def generate_response(api_key, inquiry, context):
     # Gemini モデルを選択
     model = genai.GenerativeModel("gemini-pro")
 
-    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、事前学習用の会話データ内容を踏まえて回答例を作成してください。"
+    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、以下の会話履歴、問い合わせ内容、既存の返答内容を考慮して回答例を作成してください。\n\n会話履歴:\n{context}\n\n問い合わせ内容:\n{inquiry}"
     
     # 生成を実行
     response = model.generate_content(prompt)
@@ -115,7 +114,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
     
 
 
