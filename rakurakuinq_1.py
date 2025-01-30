@@ -4,6 +4,13 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 
+# 事前学習用の会話データ
+predefined_conversations = [
+    {"customer": "注文した商品が届かないのですが？", "store": "ご注文番号を教えていただけますか？確認いたします。"},
+    {"customer": "返品は可能ですか？", "store": "はい、商品到着後7日以内であれば返品可能です。"},
+    {"customer": "営業時間を教えてください。", "store": "当店の営業時間は10:00～19:00です。"}
+]
+
 # APIキーの入力またはアップロード
 def get_api_key():
     st.sidebar.header("Gemini APIキー設定")
@@ -49,7 +56,11 @@ def generate_response(api_key, inquiry, context):
     if not api_key:
         return "APIキーが設定されていません。"
     
-    # ここでGemini APIを呼び出す
+    # 学習済み会話データを活用する
+    for convo in predefined_conversations:
+        if convo["customer"] in inquiry:
+            return convo["store"]
+    
     response = f"返答の例: {inquiry} に対する適切な返答を作成します。"
     return response
 
@@ -100,7 +111,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-    
     
 
 
