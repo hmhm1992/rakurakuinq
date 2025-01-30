@@ -24,16 +24,23 @@ predefined_conversations = [
     {"customer": "商品を頼んだけど全く届かない。どうなっていますか？", "store": "この度は当店をご利用いただきありがとうございます。ご注文商品の配送状況を確認いたしましたところ、配達完了となっておりました。大変お手数ではございますが、ご同居の住民様、配送先住所とあわせて今一度ご確認のほどお願いいたします。すでにご確認いただいており商品の確認が出来ません場合、誤配送などの可能性がございますため、その際はこちらへとお問い合わせくださいませ。在庫確認後対応させていただきます。ご不便をおかけしており大変恐縮でございますが、ご対応のほどよろしくお願いいたします。"},
     {"customer": "商品の到着が遅すぎるのでキャンセルお願いします", "store": "お問い合わせありがとうございます。カスタマーサポートでございます。お問い合わせ商品は〇〇に配達完了となっております。今一度お手元に届いていないかご確認いただけますと幸いです。"}
 ]
-# APIキーの入力またはアップロード
-def get_api_key():
+
+
+# APIキー、店舗名、担当者名の入力またはExcelアップロード
+def get_api_details():
     st.sidebar.header("Gemini APIキー設定")
     api_key = st.sidebar.text_input("APIキーを入力", type="password")
-    uploaded_file = st.sidebar.file_uploader("APIキーの入ったメモ帳ファイルをアップロード", type=["txt"])
+    store_name = st.sidebar.text_input("店舗名を入力")
+    manager_name = st.sidebar.text_input("担当者名を入力")
+    uploaded_file = st.sidebar.file_uploader("APIキー、店舗名、担当者名の入ったExcelファイルをアップロード", type=["xlsx"])
     
     if uploaded_file is not None:
-        api_key = uploaded_file.getvalue().decode("utf-8").strip()
+        df = pd.read_excel(uploaded_file, header=None)
+        api_key = str(df.iloc[1, 0]).strip()  # A2セル
+        store_name = str(df.iloc[2, 0]).strip()  # A3セル
+        manager_name = str(df.iloc[3, 0]).strip()  # A4セル
     
-    return api_key
+    return api_key, store_name, manager_name
 
 # 会話ログの入力（サイドバー）
 def get_conversation():
@@ -46,14 +53,14 @@ def get_conversation():
     return customer_1, store_1, customer_2, store_2
 
 # 返答の作成
-def generate_response(api_key, inquiry, context):
+def generate_response(api_key, inquiry, context, store_name, manager_name):
     if not api_key:
         return "APIキーが設定されていません。"
     
     # 事前学習データに基づいた返答を優先
     for convo in predefined_conversations:
         if convo["customer"] in inquiry:
-            return convo["store"]
+            return f"{store_name}の{manager_name}です。 {convo['store']}"
     
     # APIキーを設定
     genai.configure(api_key=api_key)
@@ -61,7 +68,7 @@ def generate_response(api_key, inquiry, context):
     # Gemini モデルを選択
     model = genai.GenerativeModel("gemini-pro")
 
-    prompt = f"お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
+    prompt = f"{store_name}の{manager_name}です。お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
     
     # 生成を実行
     response = model.generate_content(prompt)
@@ -72,7 +79,7 @@ def generate_response(api_key, inquiry, context):
 def main():
     st.title("問い合わせ対応アプリ")
     
-    api_key = get_api_key()
+    api_key, store_name, manager_name = get_api_details()
     
     customer_1, store_1, customer_2, store_2 = get_conversation()
     
@@ -81,7 +88,7 @@ def main():
     
     if st.button("問い合わせを処理"):
         context = f"会話履歴: {customer_1}, {store_1}, {customer_2}, {store_2}"
-        response = generate_response(api_key, inquiry, context)
+        response = generate_response(api_key, inquiry, context, store_name, manager_name)
         
         st.write(f"### 返答: {response}")
     
@@ -92,7 +99,7 @@ def main():
         if 'context' not in locals():
             context = ""
         context += f" 追加情報: {additional_info}"
-        response = generate_response(api_key, inquiry, context)
+        response = generate_response(api_key, inquiry, context, store_name, manager_name)
         st.write(f"### 修正後の返答: {response}")
     
     # 会話ログのExcel出力
