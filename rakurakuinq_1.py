@@ -24,6 +24,8 @@ predefined_conversations = [
     {"customer": "商品を頼んだけど全く届かない。どうなっていますか？", "store": "この度は当店をご利用いただきありがとうございます。ご注文商品の配送状況を確認いたしましたところ、配達完了となっておりました。大変お手数ではございますが、ご同居の住民様、配送先住所とあわせて今一度ご確認のほどお願いいたします。すでにご確認いただいており商品の確認が出来ません場合、誤配送などの可能性がございますため、その際はこちらへとお問い合わせくださいませ。在庫確認後対応させていただきます。ご不便をおかけしており大変恐縮でございますが、ご対応のほどよろしくお願いいたします。"},
     {"customer": "商品の到着が遅すぎるのでキャンセルお願いします", "store": "お問い合わせありがとうございます。カスタマーサポートでございます。お問い合わせ商品は〇〇に配達完了となっております。今一度お手元に届いていないかご確認いただけますと幸いです。"}
 ]
+
+
 # APIキー、店舗名、担当者名の入力またはExcelアップロード
 def get_api_details():
     st.sidebar.header("Gemini APIキー設定")
@@ -55,10 +57,12 @@ def generate_response(api_key, inquiry, context, store_name, manager_name):
     if not api_key:
         return "APIキーが設定されていません。"
     
+    introduction = f"{store_name}の{manager_name}です。"
+    
     # 事前学習データに基づいた返答を優先
     for convo in predefined_conversations:
         if convo["customer"] in inquiry:
-            return f"{store_name}の{manager_name}です。 {convo['store']}"
+            return f"{introduction} {convo['store']}"
     
     # APIキーを設定
     genai.configure(api_key=api_key)
@@ -66,12 +70,12 @@ def generate_response(api_key, inquiry, context, store_name, manager_name):
     # Gemini モデルを選択
     model = genai.GenerativeModel("gemini-pro")
 
-    prompt = f"{store_name}の{manager_name}です。お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
+    prompt = f"{introduction} お客様から '{inquiry}' という問い合わせが来ているので、以下の事前学習用の会話データを参考にしながら適切な回答例を作成してください。\n\n事前学習データ:\n{predefined_conversations}\n\n問い合わせ内容:\n{inquiry}"
     
     # 生成を実行
     response = model.generate_content(prompt)
     
-    return response.text
+    return f"{introduction} {response.text}"
 
 # メインアプリ
 def main():
