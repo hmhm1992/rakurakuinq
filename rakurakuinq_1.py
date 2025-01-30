@@ -33,23 +33,48 @@ def get_conversation():
     
     return customer_1, store_1, customer_2, store_2
 
-# 重要度判定と問い合わせ分類
-def classify_inquiry(inquiry):
-    if "急ぎ" in inquiry or "至急" in inquiry:
-        importance = "すぐに返信する必要がある"
-    elif "確認" in inquiry or "お願いします" in inquiry:
-        importance = "返信が必要"
-    else:
-        importance = "丁寧な返信が必要"
+# 重要度判定と問い合わせ分類（Gemini AIを使用）
+def classify_inquiry(api_key, inquiry):
+    if not api_key:
+        return "APIキーが設定されていません。", "分類できません"
     
-    if "注文" in inquiry:
-        if "まだ" in inquiry or "前" in inquiry:
-            inquiry_type = "注文前の問い合わせ"
-        else:
-            inquiry_type = "注文後の問い合わせ"
-    else:
-        inquiry_type = "その他"
+    # APIキーを設定
+    genai.configure(api_key=api_key)
     
+    # Gemini モデルを選択
+    model = genai.GenerativeModel("gemini-pro")
+    
+    # プロンプト作成
+    prompt = f"""
+    以下の問い合わせの重要度を判定し、分類してください。
+
+    問い合わせ: "{inquiry}"
+
+    重要度は以下の3つの中から選択してください。
+    1. すぐに返信する必要がある
+    2. 返信が必要
+    3. 丁寧な返信が必要
+
+    また、問い合わせの種類は以下の3つの中から選択してください。
+    1. 注文前の問い合わせ
+    2. 注文後の問い合わせ
+    3. その他
+
+    重要度と問い合わせの種類を出力してください。
+    """
+    
+    # Gemini API に問い合わせる
+    response = model.generate_content(prompt)
+    
+    # 結果を解析（応答テキストの抽出）
+    result = response.text.strip().split("\n")
+    
+    if len(result) >= 2:
+        importance = result[0].strip()
+        inquiry_type = result[1].strip()
+    else:
+        importance, inquiry_type = "分類エラー", "分類エラー"
+
     return importance, inquiry_type
 
 # 返答の作成
@@ -82,7 +107,7 @@ def main():
     inquiry = st.text_area("お客様からの問い合わせ")
     
     if st.button("問い合わせを処理"):
-        importance, inquiry_type = classify_inquiry(inquiry)
+        importance, inquiry_type = classify_inquiry(api_key, inquiry)
         context = f"会話履歴: {customer_1}, {store_1}, {customer_2}, {store_2}"
         response = generate_response(api_key, inquiry, context)
         
@@ -121,5 +146,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
