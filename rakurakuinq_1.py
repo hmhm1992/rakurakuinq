@@ -25,7 +25,6 @@ predefined_conversations = [
     {"customer": "商品の到着が遅すぎるのでキャンセルお願いします", "store": "お問い合わせありがとうございます。カスタマーサポートでございます。お問い合わせ商品は〇〇に配達完了となっております。今一度お手元に届いていないかご確認いただけますと幸いです。"}
 ]
 
-
 # APIキー、店舗名、担当者名の入力またはExcelアップロード
 def get_api_details():
     st.sidebar.header("Gemini APIキー設定")
