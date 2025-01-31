@@ -35,7 +35,7 @@ predefined_conversations = [
 # APIキー、店舗名、担当者名の入力またはExcelアップロード
 def get_api_details():
     st.sidebar.header("Gemini APIキー設定")
-    api_key = st.sidebar.text_input("APIキーを入力", type="password")
+    api_key = st.sidebar.text_input("APIキーを入力",value="AIzaSyADbTNp5VPu9euHec4ZSD0BzIURAkbb_KQ", type="password")
     store_name = st.sidebar.text_input("店舗名を入力")
     manager_name = st.sidebar.text_input("担当者名を入力")
     uploaded_file = st.sidebar.file_uploader("APIキー、店舗名、担当者名の入ったExcelファイルをアップロード", type=["xlsx"])
