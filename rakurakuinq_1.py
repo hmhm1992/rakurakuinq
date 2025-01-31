@@ -85,6 +85,7 @@ def generate_response(api_key, inquiry, context, store_name, manager_name):
 
 # メインアプリ
 def main():
+    st.set_page_config(page_title="問い合わせ対応アプリ")
     st.title("問い合わせ対応アプリ")
     
     api_key, store_name, manager_name = get_api_details()
@@ -99,16 +100,6 @@ def main():
         response = generate_response(api_key, inquiry, context, store_name, manager_name)
         
         st.write(f"### 返答: {response}")
-    
-    st.header("追加情報入力")
-    additional_info = st.text_area("追加情報を入力してください")
-    
-    if st.button("追加情報を考慮して返答を作成"):
-        if 'context' not in locals():
-            context = ""
-        context += f" 追加情報: {additional_info}"
-        response = generate_response(api_key, inquiry, context, store_name, manager_name)
-        st.write(f"### 修正後の返答: {response}")
     
     # 会話ログのExcel出力
     if st.button("会話ログをExcelで出力"):
