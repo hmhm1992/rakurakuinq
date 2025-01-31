@@ -81,7 +81,7 @@ def generate_response(api_key, inquiry, context, store_name, manager_name):
     # 生成を実行
     response = model.generate_content(prompt)
     
-    return f"{introduction} {response.text}"
+    return f" {response.text}"
 
 # メインアプリ
 def main():
