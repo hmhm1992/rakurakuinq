@@ -101,24 +101,7 @@ def main():
         
         st.write(f"### 返答: {response}")
     
-    # 会話ログのExcel出力
-    if st.button("会話ログをExcelで出力"):
-        df = pd.DataFrame([
-            ["お客様①", customer_1],
-            ["店舗①", store_1],
-            ["お客様②", customer_2],
-            ["店舗②", store_2],
-            ["問い合わせ", inquiry],
-            ["追加情報", additional_info]
-        ], columns=["種類", "内容"])
-        
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-            df.to_excel(writer, index=False, sheet_name="会話ログ")
-        output.seek(0)
-        
-        st.success("会話ログがExcelとして出力されました。")
-        st.download_button(label="ダウンロード", data=output, file_name="conversation_log.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 if __name__ == "__main__":
     main()
